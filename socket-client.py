@@ -6,7 +6,7 @@ SERVER_IP = "192.168.1.5"
 PORT = 17100  # Ensure this is within 0-65535
 
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server_socket.bind((SERVER_IP, PORT))
+server_socket.bind(("", PORT))
 server_socket.listen()
 
 print(f"Server listening on port {PORT}...")
