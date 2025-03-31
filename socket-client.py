@@ -15,7 +15,7 @@ conn, addr = server_socket.accept()
 print(f"Connected by {addr}")
 
 while True:
-    data = conn.recv(1024)  
+    data = conn.recv(1024)
     if not data:
         break
     print(f"Received: {data.decode()}")
