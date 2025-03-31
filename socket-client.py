@@ -3,24 +3,20 @@ import socket
 # Connect to server
 
 SERVER_IP = "192.168.1.5"
-PORT = 17100  # Ensure this is within 0-65535
+PORT = 17100
 
-server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server_socket.bind(("", PORT))
-server_socket.listen()
+client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+client_socket.connect((SERVER_IP, PORT))
 
-print(f"Server listening on port {PORT}...")
-
-conn, addr = server_socket.accept()
-print(f"Connected by {addr}")
+print(f"Connected to server at {SERVER_IP}:{PORT}")
 
 while True:
-    data = conn.recv(1024)
-    if not data:
-        break
-    print(f"Received: {data.decode()}")
-    response = input("Enter response: ")
-    conn.sendall(response.encode())
+    msg = input("Enter message: ")
 
-conn.close()
-server_socket.close()
+    if msg.lower() == "exit":
+        break
+    client_socket.sendall(msg.encode())
+    response = client_socket.recv(1024).decode()
+    print(f"Server: {response}")
+
+client_socket.close()
