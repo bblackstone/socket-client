@@ -2,11 +2,11 @@ import socket
 
 # Connect to server
 
-SERVER_IP = "192.168.1.5"
+SERVER_IP = input("Enter the Server IPV4")
 PORT = 17100
 
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-client_socket.connect((SERVER_IP, PORT))
+client_socket.connect((SERVER_IP, POR T))
 
 print(f"Connected to server at {SERVER_IP}:{PORT}")
 
