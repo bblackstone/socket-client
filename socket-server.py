@@ -40,7 +40,7 @@ print(f" Server listening on port {PORT}...")
 
 def handle_client(conn, addr):
     """Handles client authentication and command execution."""
-    print(f"🔗 Connected by {addr}")
+    print(f"Connected by {addr}")
 
     # Send Ngrok public URL if available
     if public_url:
@@ -83,7 +83,7 @@ def handle_client(conn, addr):
             print(f"  Connection error: {e}")
             break
 
-    print(f"🔌 Connection closed: {addr}")
+    print(f"Connection closed: {addr}")
     conn.close()
 
 # Accept multiple clients
