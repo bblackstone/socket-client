@@ -1,6 +1,5 @@
 import sys
 import argparse
-import socket
 
 # Try to import websocket client library for WebSocket mode
 try:
@@ -9,78 +8,61 @@ try:
 except ImportError:
     WS_CLIENT_AVAILABLE = False
 
-HOST = "127.0.0.1"  # Default; override with --host if needed
-PORT = 17100
+HOST = "127.0.0.1"  # Default; can be overridden by --host
+PORT = 17100        # Default; can be overridden by --port
 PASSWORD = "bs-atlas"  # Same as server password
 
 def tcp_client():
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.connect((HOST, PORT))
-    print("Connected to TCP server.")
+    print("TCP mode is not compatible with Ngrok HTTP tunnels. Use WebSocket mode instead.")
+    sys.exit(1)
 
-    # Display initial messages (for example, public URL and password prompt)
-    data = s.recv(1024).decode()
-    print(data, end="")
-
-    # Send password
-    s.sendall(PASSWORD.encode())
-    resp = s.recv(1024).decode()
-    print(resp, end="")
-
-    # Interactive loop: send user input to server and print the response
-    try:
-        while True:
-            user_input = input(">> ")
-            s.sendall(user_input.encode())
-            response = s.recv(4096).decode()
-            print(response)
-    except KeyboardInterrupt:
-        print("\nClosing connection.")
-    finally:
-        s.close()
-
-def ws_client():
+def ws_client(ws_url):
     if not WS_CLIENT_AVAILABLE:
-        print("Websocket client library not installed. Install with: pip install websocket-client")
+        print("websocket-client library not installed. Install with: pip install websocket-client")
         sys.exit(1)
 
-    ws_url = f"ws://{HOST}:{PORT}"
     ws = websocket.create_connection(ws_url)
-    print("Connected to WebSocket server.")
+    print(f"Connected to WebSocket server at {ws_url}")
 
     # Display initial messages from the server
-    result = ws.recv()
-    print(result, end="")
+    msg = ws.recv()
+    print(msg, end="")
 
     # Send password and display confirmation
     ws.send(PASSWORD)
-    result = ws.recv()
-    print(result, end="")
+    msg = ws.recv()
+    print(msg, end="")
 
     # Interactive loop: send messages and display response
     try:
         while True:
             user_input = input(">> ")
             ws.send(user_input)
-            result = ws.recv()
-            print(result)
+            msg = ws.recv()
+            print(msg)
     except KeyboardInterrupt:
         print("\nClosing connection.")
     finally:
         ws.close()
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description="Dual-mode Client: TCP socket or WebSocket")
-    parser.add_argument("--mode", choices=["tcp", "ws"], default="tcp", help="Select client mode (tcp or ws)")
-    parser.add_argument("--host", default=HOST, help="Server host address")
-    parser.add_argument("--port", type=int, default=PORT, help="Server port")
+    parser = argparse.ArgumentParser(description="Dual-mode Client: TCP or WebSocket")
+    parser.add_argument("--mode", choices=["tcp", "ws"], default="ws", help="Select client mode (tcp or ws)")
+    parser.add_argument("--url", help="Full WebSocket URL (e.g., wss://7dbf-197-230-172-163.ngrok-free.app)")
+    parser.add_argument("--host", help="Server host address (if not using a full URL)")
+    parser.add_argument("--port", type=int, help="Server port (if not using a full URL)")
     args = parser.parse_args()
-
-    # Override host and port if provided
-    HOST = args.host
-    PORT = args.port
 
     if args.mode == "tcp":
         tcp_client()
     else:
-        ws_client()
+        # For WebSocket mode, use --url if provided, otherwise use host/port
+        if args.url:
+            ws_url = args.url
+        else:
+            if not args.host or not args.port:
+                print("Provide either --url or both --host and --port for WebSocket mode.")
+                sys.exit(1)
+            protocol = "wss" if args.host.startswith("https") or "ngrok" in args.host else "ws"
+            ws_url = f"{protocol}://{args.host}:{args.port}"
+        ws_client(ws_url)
